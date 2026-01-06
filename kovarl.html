@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnite Creative Revenue Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        input[type=range] { cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen p-4 md:p-8">
+    <div id="app" class="max-w-6xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    <i data-lucide="calculator" class="w-8 h-8 text-blue-600"></i>
+                    FN CREATIVE <span class="text-blue-600">REVENUE</span>
+                </h1>
+                <p class="text-slate-500 font-medium">Estimates for UEFN & Creator Codes</p>
+            </div>
+            <div class="flex gap-2">
+                <div class="bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm font-bold text-slate-600 uppercase tracking-wider">Live API Sync</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Inputs -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+                    
+                    <!-- Tabs -->
+                    <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
+                        <button onclick="setMethod('manual')" id="tab-manual" class="method-tab flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white shadow-md text-blue-600">Maps</button>
+                        <button onclick="setMethod('youtube')" id="tab-youtube" class="method-tab flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700">YouTube</button>
+                        <button onclick="setMethod('code')" id="tab-code" class="method-tab flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700">Code</button>
+                    </div>
+
+                    <!-- YouTube Content -->
+                    <div id="content-youtube" class="hidden space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Search Channel</label>
+                            <div class="relative">
+                                <input id="yt-input" type="text" placeholder="Channel Name or @Handle" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-red-500 transition-all font-bold">
+                                <i data-lucide="search" class="absolute left-4 top-4 text-slate-400 w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <button onclick="fetchYoutube()" id="yt-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-red-200 flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50">
+                            Sync Stats
+                        </button>
+                        <div id="yt-error" class="hidden text-red-600 bg-red-50 p-4 rounded-2xl text-xs font-bold border border-red-100"></div>
+                        <div id="yt-data" class="hidden p-4 bg-slate-900 rounded-3xl text-white flex items-center gap-4 border border-slate-800">
+                            <img id="yt-thumb" src="" class="w-12 h-12 rounded-full border-2 border-slate-700" alt="avatar">
+                            <div class="overflow-hidden">
+                                <p id="yt-title" class="text-sm font-black truncate"></p>
+                                <p id="yt-subs" class="text-[10px] text-slate-400 uppercase font-black"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Creator Code Content -->
+                    <div id="content-code" class="hidden space-y-8">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supporters</label>
+                                <span id="val-supporters" class="text-2xl font-black text-indigo-600">500</span>
+                            </div>
+                            <input type="range" id="range-supporters" min="10" max="10000" step="10" value="500" class="w-full h-2 bg-slate-100 rounded-lg appearance-none accent-indigo-600">
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly V-Bucks / Person</label>
+                                <span id="val-vbucks" class="text-2xl font-black text-indigo-600">2,000</span>
+                            </div>
+                            <input type="range" id="range-vbucks" min="500" max="15000" step="100" value="2000" class="w-full h-2 bg-slate-100 rounded-lg appearance-none accent-indigo-600">
+                        </div>
+                    </div>
+
+                    <!-- Manual/Maps Content -->
+                    <div id="content-manual" class="space-y-8">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Players (CCU)</label>
+                                <span id="val-ccu" class="text-2xl font-black text-blue-600">100</span>
+                            </div>
+                            <input type="range" id="range-ccu" min="1" max="5000" step="10" value="100" class="w-full h-2 bg-slate-100 rounded-lg appearance-none accent-blue-600">
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Session Time</label>
+                                <span id="val-playtime" class="text-2xl font-black text-blue-600">20m</span>
+                            </div>
+                            <input type="range" id="range-playtime" min="5" max="60" step="1" value="20" class="w-full h-2 bg-slate-100 rounded-lg appearance-none accent-blue-600">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100 flex gap-4">
+                    <i data-lucide="info" class="w-6 h-6 text-blue-500 shrink-0"></i>
+                    <p id="info-text" class="text-sm text-blue-800 leading-relaxed">
+                        Engagement payouts are calculated by Epic Games using complex engagement pool metrics including playtime and retention.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Main Card -->
+                    <div class="md:col-span-2 bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group border-4 border-blue-600/20">
+                        <div class="absolute top-0 right-0 p-8">
+                            <i data-lucide="dollar-sign" class="w-24 h-24 text-blue-500/10 absolute -top-4 -right-4"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Estimated Monthly Payout</p>
+                            <div class="flex items-baseline gap-2">
+                                <span id="res-monthly" class="text-7xl font-black tracking-tighter text-white">$0</span>
+                                <span class="text-blue-400 font-bold text-xl uppercase tracking-widest">USD</span>
+                            </div>
+                            <div class="mt-8 pt-8 border-t border-white/10 flex items-center gap-8">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Yearly Projection</p>
+                                    <p id="res-yearly" class="text-2xl font-black text-white">$0</p>
+                                </div>
+                                <div class="ml-auto">
+                                    <div class="flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-2xl border border-green-500/20">
+                                        <i data-lucide="trending-up" class="w-4 h-4 text-green-400"></i>
+                                        <span class="text-[10px] font-black text-green-400 uppercase">Growth Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Card -->
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between">
+                        <div>
+                            <p id="label-primary" class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Engagement Minutes</p>
+                            <div class="text-4xl font-black text-slate-900 flex items-baseline gap-2">
+                                <span id="res-primary">0</span>
+                                <span id="label-primary-unit" class="text-sm font-bold text-slate-400 uppercase">Mins</span>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex justify-between items-end border-t pt-6 border-slate-50">
+                            <div class="flex-1">
+                                <p id="label-secondary" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Payer Reach</p>
+                                <p id="res-secondary" class="text-xl font-black text-slate-700">0</p>
+                            </div>
+                            <div class="text-right flex-1">
+                                <p id="label-tertiary" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Ratio</p>
+                                <p id="res-tertiary" class="text-xl font-black text-blue-600">62%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bonus Card -->
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <i data-lucide="shopping-bag" class="w-5 h-5 text-purple-600"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800">Bonus Tier</h3>
+                        </div>
+                        <div class="space-y-4">
+                           <div>
+                              <div class="flex justify-between mb-2">
+                                 <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loyalty Multiplier</p>
+                                 <p class="text-xs font-black text-purple-600">+20%</p>
+                              </div>
+                              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                 <div class="w-[20%] h-full bg-purple-500"></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div class="flex justify-between mb-2">
+                                 <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Discovery Bonus</p>
+                                 <p class="text-xs font-black text-orange-500">+10%</p>
+                              </div>
+                              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                 <div class="w-[10%] h-full bg-orange-500"></div>
+                              </div>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2.5rem] text-white flex gap-6 items-center shadow-2xl">
+                    <i data-lucide="alert-circle" class="w-12 h-12 opacity-50 shrink-0"></i>
+                    <p class="text-sm font-medium leading-relaxed">
+                        <b>Strategy Note:</b> Combining a viral map with an active Creator Code is the meta for max revenue. Maps pay for your overhead, while the SAC code converts fans directly into profit.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let state = {
+            method: 'manual',
+            ccu: 100,
+            playtime: 20,
+            supporters: 500,
+            avgVbucks: 2000,
+            loading: false
+        };
+
+        const API_KEY = "AIzaSyCD59K7Kqq38ISsTvmyrvqPWuOYE52nPBc"; 
+        const CONSTANTS = {
+            PAYER_RATIO: 0.62,
+            POOL_RATE: 0.08,
+            SAC_RATE: 0.05,
+            VBUCK_USD: 0.009
+        };
+
+        // Exponential backoff for API calls
+        async function fetchWithBackoff(url, retries = 5) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) return await response.json();
+                    if (response.status === 403 || response.status === 429) {
+                        // Potential quota or permission issue, wait and retry
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || "API request failed");
+                    }
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                }
+                const delay = Math.pow(2, i) * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
+        function setMethod(m) {
+            state.method = m;
+            updateUI();
+        }
+
+        async function fetchYoutube() {
+            const input = document.getElementById('yt-input').value.trim();
+            if(!input) return;
+
+            const btn = document.getElementById('yt-btn');
+            const errDiv = document.getElementById('yt-error');
+            const dataDiv = document.getElementById('yt-data');
+            
+            state.loading = true;
+            btn.disabled = true;
+            btn.innerText = "Syncing...";
+            errDiv.classList.add('hidden');
+            dataDiv.classList.add('hidden');
+
+            try {
+                // 1. Search for channel ID
+                const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(input)}&maxResults=1&key=${API_KEY}`;
+                const searchData = await fetchWithBackoff(searchUrl);
+
+                if (!searchData.items || searchData.items.length === 0) {
+                    throw new Error("Channel not found. Try a different name or @handle.");
+                }
+
+                const channelId = searchData.items[0].id.channelId;
+                const snippet = searchData.items[0].snippet;
+
+                // 2. Get detailed channel stats (subscribers)
+                const statsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${API_KEY}`;
+                const statsData = await fetchWithBackoff(statsUrl);
+
+                if (!statsData.items || statsData.items.length === 0) {
+                    throw new Error("Could not retrieve channel statistics.");
+                }
+
+                const stats = statsData.items[0].statistics;
+                const subs = parseInt(stats.subscriberCount) || 0;
+                
+                // Formula: Convert subscribers to a realistic CCU baseline (approx 0.18% conversion)
+                const projectedCcu = Math.max(1, Math.round(subs * 0.0018));
+                
+                state.ccu = projectedCcu;
+                document.getElementById('range-ccu').value = projectedCcu;
+                
+                dataDiv.classList.remove('hidden');
+                document.getElementById('yt-title').innerText = snippet.title;
+                document.getElementById('yt-subs').innerText = subs.toLocaleString() + " Subscribers";
+                document.getElementById('yt-thumb').src = snippet.thumbnails.default.url;
+                
+                updateUI();
+            } catch (err) {
+                errDiv.innerText = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                state.loading = false;
+                btn.disabled = false;
+                btn.innerText = "Sync Stats";
+            }
+        }
+
+        function calculate() {
+            if (state.method === 'code') {
+                const totalVbucks = state.supporters * state.avgVbucks;
+                const totalUsd = totalVbucks * CONSTANTS.VBUCK_USD;
+                const monthly = totalUsd * CONSTANTS.SAC_RATE;
+                return {
+                    monthly,
+                    yearly: monthly * 12,
+                    primary: totalUsd,
+                    secondary: totalVbucks,
+                    isSac: true
+                };
+            } else {
+                const daily = state.ccu * 24;
+                const monthlyUsers = daily * 30;
+                const payers = monthlyUsers * CONSTANTS.PAYER_RATIO;
+                const totalMins = payers * state.playtime;
+                const monthly = (totalMins / 1000) * CONSTANTS.POOL_RATE;
+                return {
+                    monthly,
+                    yearly: monthly * 12,
+                    primary: totalMins / 1000000,
+                    secondary: payers,
+                    isSac: false
+                };
+            }
+        }
+
+        function updateUI() {
+            // Update Tabs
+            document.querySelectorAll('.method-tab').forEach(t => {
+                t.classList.remove('bg-white', 'shadow-md', 'text-blue-600');
+                t.classList.add('text-slate-500');
+            });
+            const activeTab = document.getElementById(`tab-${state.method}`);
+            activeTab.classList.add('bg-white', 'shadow-md', 'text-blue-600');
+            activeTab.classList.remove('text-slate-500');
+
+            // Toggle Content Visibility
+            const manualContent = document.getElementById('content-manual');
+            const ytContent = document.getElementById('content-youtube');
+            const codeContent = document.getElementById('content-code');
+
+            if (state.method === 'code') {
+                manualContent.classList.add('hidden');
+                ytContent.classList.add('hidden');
+                codeContent.classList.remove('hidden');
+            } else if (state.method === 'youtube') {
+                manualContent.classList.remove('hidden');
+                ytContent.classList.remove('hidden');
+                codeContent.classList.add('hidden');
+            } else {
+                manualContent.classList.remove('hidden');
+                ytContent.classList.add('hidden');
+                codeContent.classList.add('hidden');
+            }
+
+            // Update range values and labels
+            document.getElementById('val-ccu').innerText = state.ccu.toLocaleString();
+            document.getElementById('val-playtime').innerText = state.playtime + 'm';
+            document.getElementById('val-supporters').innerText = state.supporters.toLocaleString();
+            document.getElementById('val-vbucks').innerText = state.avgVbucks.toLocaleString();
+
+            const res = calculate();
+
+            // Results Display
+            document.getElementById('res-monthly').innerText = '$' + Math.round(res.monthly).toLocaleString();
+            document.getElementById('res-yearly').innerText = '$' + Math.round(res.yearly).toLocaleString();
+
+            if (res.isSac) {
+                document.getElementById('label-primary').innerText = "Gross Sales Volume";
+                document.getElementById('res-primary').innerText = '$' + Math.round(res.primary).toLocaleString();
+                document.getElementById('label-primary-unit').innerText = "Sales";
+                document.getElementById('label-secondary').innerText = "V-Bucks Flow";
+                document.getElementById('res-secondary').innerText = (res.secondary / 1000).toFixed(1) + 'k';
+                document.getElementById('label-tertiary').innerText = "Comm.";
+                document.getElementById('res-tertiary').innerText = "5.0%";
+                document.getElementById('res-tertiary').className = "text-xl font-black text-indigo-600";
+                document.getElementById('info-text').innerText = "Support-A-Creator 2.0 payouts are calculated at a rate of $5 USD for every 10,000 V-Bucks spent in-game.";
+            } else {
+                document.getElementById('label-primary').innerText = "Engagement Minutes";
+                document.getElementById('res-primary').innerText = res.primary.toFixed(2) + 'M';
+                document.getElementById('label-primary-unit').innerText = "Mins";
+                document.getElementById('label-secondary').innerText = "Payer Reach";
+                document.getElementById('res-secondary').innerText = Math.round(res.secondary).toLocaleString();
+                document.getElementById('label-tertiary').innerText = "Ratio";
+                document.getElementById('res-tertiary').innerText = "62%";
+                document.getElementById('res-tertiary').className = "text-xl font-black text-blue-600";
+                document.getElementById('info-text').innerText = "Engagement payouts are calculated by Epic Games using complex engagement pool metrics including playtime and retention.";
+            }
+        }
+
+        // Event Listeners for inputs
+        document.getElementById('range-ccu').addEventListener('input', (e) => { state.ccu = +e.target.value; updateUI(); });
+        document.getElementById('range-playtime').addEventListener('input', (e) => { state.playtime = +e.target.value; updateUI(); });
+        document.getElementById('range-supporters').addEventListener('input', (e) => { state.supporters = +e.target.value; updateUI(); });
+        document.getElementById('range-vbucks').addEventListener('input', (e) => { state.avgVbucks = +e.target.value; updateUI(); });
+        
+        // Handle Enter key on YouTube search
+        document.getElementById('yt-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') fetchYoutube();
+        });
+
+        // Initial setup
+        window.onload = () => {
+            lucide.createIcons();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
